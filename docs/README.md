@@ -1,2 +1,0 @@
-# Visualizacion interactiva SGF
-
