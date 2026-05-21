@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel SGF · Auditoría técnica de flotas</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="repo-header" id="top">
+      <div class="repo-kicker">Fleet-Cybersecurity-main / docs / index.html</div>
+      <div class="eyebrow">Security review · SGF · Fleet telemetry</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Auditoría técnica de un Sistema de Gestión de Flotas</h1>
+          <p class="lead">
+            Inventario navegable del ecosistema SGF: vehículo, TCU, sensores, comunicaciones, cloud, APIs, identidades digitales, OTA y puntos únicos de fallo. La lectura es operativa: qué datos entran, dónde se confía, qué puede fallar y qué evidencias permiten defender una hipótesis.
+          </p>
+          <div class="repo-meta" aria-label="Metadatos del proyecto">
+            <span>Evaluación práctica</span>
+            <span>Clase 19-20/05/2026</span>
+            <span>SGF · SDV · V2X</span>
+            <span>Estado: documentado</span>
+          </div>
+          <div class="status-grid" aria-label="Estado resumido del sistema">
+            <div class="status-item"><span>Estado TCU</span><strong>Activo</strong></div>
+            <div class="status-item"><span>Última telemetría</span><strong>14:22</strong></div>
+            <div class="status-item"><span>Canal</span><strong>MQTT/TLS</strong></div>
+            <div class="status-item"><span>Riesgo</span><strong class="warn">Alto</strong></div>
+            <div class="status-item"><span>Dependencia crítica</span><strong>Cloud API</strong></div>
+            <div class="status-item"><span>Evidencia</span><strong>Logs · CVE · MITRE · ENS</strong></div>
+          </div>
+          <div class="hero-actions">
+            <button class="btn primary" data-scroll="#mapa">Inventario SGF</button>
+            <button class="btn" data-scroll="#dependencias">Dependencias críticas</button>
+            <button class="btn" data-scroll="#ataques">Vectores de ataque</button>
+            <button class="btn" data-scroll="#dia3">Caso: interrupción de telemetría</button>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Inventario técnico del ecosistema SGF">
+          <div class="inventory-grid">
+            <article class="inventory-card">
+              <strong>Vehículo</strong>
+              <span>ECU, CAN, OBD-II, sensores y actuadores</span>
+              <dl>
+                <dt>Riesgo</dt><dd>Manipulación local o telemetría falsa</dd>
+                <dt>Controles</dt><dd>Segmentación, hardening y logging</dd>
+              </dl>
+            </article>
+            <article class="inventory-card">
+              <strong>TCU / OBU</strong>
+              <span>MQTT, HTTPS, LTE/5G, firmware y certificados</span>
+              <dl>
+                <dt>Riesgo</dt><dd>Pivote cloud-vehículo</dd>
+                <dt>Controles</dt><dd>mTLS, rotación de claves, firmware firmado</dd>
+              </dl>
+            </article>
+            <article class="inventory-card">
+              <strong>GNSS + IMU</strong>
+              <span>Localización, movimiento, rutas y coherencia física</span>
+              <dl>
+                <dt>Riesgo</dt><dd>Spoofing o pérdida de integridad</dd>
+                <dt>Controles</dt><dd>Validación cruzada y detección de anomalías</dd>
+              </dl>
+            </article>
+            <div class="inventory-strip">
+              <div><strong>Comunicaciones</strong><span>LTE/5G · MQTT · TLS · Kafka</span></div>
+              <div><strong>Backend SGF</strong><span>API Gateway · SIEM · data lake · IA/ML</span></div>
+              <div><strong>Operación</strong><span>IAM · OTA · respuesta · evidencias</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h2>Navegacion</h2>
+        <input id="moduleSearch" class="search" type="text" placeholder="Filtrar conceptos..." />
+
+        <div class="nav-list">
+          <button class="nav-btn active" data-scroll="#mapa" data-tags="mapa sgf ecosistema vehiculo tcu cloud">
+            <div class="nav-topline">Mapa</div>
+            <div class="nav-title">Ecosistema SGF</div>
+            <div class="nav-meta">6 bloques · cadena de confianza</div>
+          </button>
+          <button class="nav-btn" data-scroll="#expediente" data-tags="resumen ejecutivo expediente hipotesis linea temporal evidencias controles respuesta">
+            <div class="nav-topline">Expediente</div>
+            <div class="nav-title">Análisis del caso</div>
+            <div class="nav-meta">síntomas · hipótesis · evidencias</div>
+          </button>
+          <button class="nav-btn" data-scroll="#conclusion-curso" data-tags="conclusion curso alcance sgf automocion sdv v2x telemetria">
+            <div class="nav-topline">Síntesis</div>
+            <div class="nav-title">Conclusión del curso</div>
+            <div class="nav-meta">visión global · criterio técnico</div>
+          </button>
+          <button class="nav-btn" data-scroll="#dia1" data-tags="dia 1 contexto unece r155 cybermovilidad telemetria datos vehiculo">
+            <div class="nav-topline">Dia 1</div>
+            <div class="nav-title">Base del curso</div>
+            <div class="nav-meta">contexto · telemetria · SGF</div>
+          </button>
+          <button class="nav-btn" data-scroll="#elementos" data-tags="elementos tcu sensores comunicaciones backend iam ota">
+            <div class="nav-topline">Base tecnica</div>
+            <div class="nav-title">Seis elementos</div>
+            <div class="nav-meta">vehiculo · cloud · operacion</div>
+          </button>
+          <button class="nav-btn" data-scroll="#dependencias" data-tags="dependencias criticas gps api certificados cloud">
+            <div class="nav-topline">Criticidad</div>
+            <div class="nav-title">Dependencias</div>
+            <div class="nav-meta">si falla X, pierdo Y</div>
+          </button>
+          <button class="nav-btn" data-scroll="#gnss" data-tags="gps gnss spoofing dbscan imu can hdd">
+            <div class="nav-topline">GNSS</div>
+            <div class="nav-title">Spoofing y DBSCAN</div>
+            <div class="nav-meta">deteccion · sensor fusion</div>
+          </button>
+          <button class="nav-btn" data-scroll="#steer" data-tags="steer by wire hall sensor magnetico direccion">
+            <div class="nav-topline">Ciberfisico</div>
+            <div class="nav-title">Steer-by-Wire</div>
+            <div class="nav-meta">sensores · actuadores</div>
+          </button>
+          <button class="nav-btn" data-scroll="#ataques" data-tags="mtls certificados rbac mfa logging cloud ataques">
+            <div class="nav-topline">Exposición</div>
+            <div class="nav-title">Vectores de ataque</div>
+            <div class="nav-meta">mTLS · IAM · SIEM</div>
+          </button>
+          <button class="nav-btn" data-scroll="#dia3" data-tags="dia 3 incidente telemetria ubicaciones combustible rutas evidencias hipotesis">
+            <div class="nav-topline">Caso práctico</div>
+            <div class="nav-title">Interrupción telemetría</div>
+            <div class="nav-meta">TCU-cloud · GNSS · evidencias</div>
+          </button>
+          <button class="nav-btn" data-scroll="#avanzado" data-tags="laboratorio red team emi emp hpm gnss jamming can mqtt doip someip">
+            <div class="nav-topline">Anexo</div>
+            <div class="nav-title">Ataques avanzados</div>
+            <div class="nav-meta">DoS · RF · SDV · laboratorio</div>
+          </button>
+          <button class="nav-btn" data-scroll="#tecnicas" data-tags="tecnicas ataque defensa penetracion laboratorio real automotriz sdv v2x autonomos">
+            <div class="nav-topline">Técnicas</div>
+            <div class="nav-title">Ataque y defensa</div>
+            <div class="nav-meta">real · laboratorio · mitigación</div>
+          </button>
+          <button class="nav-btn" data-scroll="#spof" data-tags="single point of failure api gateway pki ota mqtt idp">
+            <div class="nav-topline">Arquitectura</div>
+            <div class="nav-title">SPoF</div>
+            <div class="nav-meta">fallo centralizado</div>
+          </button>
+          <button class="nav-btn" data-scroll="#mercado" data-tags="plataformas mercado geotab samsara webfleet verizon wialon despliegue saas on premise hibrido">
+            <div class="nav-topline">Mercado</div>
+            <div class="nav-title">Tipos de SGF</div>
+            <div class="nav-meta">SaaS · on-prem · open source</div>
+          </button>
+          <button class="nav-btn" data-scroll="#cumplimiento" data-tags="rgpd iso 27001 21434 r155 r156 responsabilidades auditoria evidencias proveedor pentest">
+            <div class="nav-topline">Cumplimiento</div>
+            <div class="nav-title">Normas y evidencias</div>
+            <div class="nav-meta">RGPD · ISO · UNECE</div>
+          </button>
+          <button class="nav-btn" data-scroll="#ota" data-tags="ota firmware signing secure boot rollback delta updates incidente">
+            <div class="nav-topline">OTA</div>
+            <div class="nav-title">Firmware y respuesta</div>
+            <div class="nav-meta">firma · rollback · forensia</div>
+          </button>
+          <button class="nav-btn" data-scroll="#software" data-tags="plataformas pago software libre geotab samsara webfleet verizon traccar opengts fleetbase openvts fleetpy">
+            <div class="nav-topline">Recursos</div>
+            <div class="nav-title">Plataformas SGF</div>
+            <div class="nav-meta">pago · libre · simulación</div>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="panel" id="expediente">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Expediente técnico</div>
+              <h2 class="section-title">Caso de integridad de telemetría en flota conectada</h2>
+              <p class="section-subtitle">
+                La ventana de 4 horas, los 25 vehículos afectados y la mezcla de ubicación, combustible y rutas obligan a tratar el caso como un problema de cadena de confianza. La hipótesis no debe cerrarse en el GPS hasta contrastar TCU, CAN/OBD, broker, API, cloud, IAM y datos crudos.
+              </p>
+            </div>
+            <div class="chip-row">
+              <span class="chip">Ventana: 4 h</span>
+              <span class="chip">Activos: 25</span>
+              <span class="chip">Impacto: trazabilidad</span>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Resumen ejecutivo</h3>
+              <p>El incidente combina saltos de localización de 20-30 km, combustible incompatible con la operación real y rutas negadas por los conductores. Esa combinación apunta a manipulación o degradación de datos en una capa compartida del SGF, no a un error aislado de mapa.</p>
+            </article>
+            <article class="card">
+              <h3>Criterio de análisis</h3>
+              <p>La fuente de verdad debe construirse por correlación: GNSS, IMU, odómetro, CAN/OBD, tacógrafo, TCU, broker, API Gateway, base de datos, SIEM y evidencias externas como peajes, albaranes o registros de carga.</p>
+            </article>
+          </div>
+
+          <div class="timeline" aria-label="Línea temporal del incidente">
+            <div class="timeline-item"><strong>T0</strong><span>Telemetría normal y rutas esperadas.</span></div>
+            <div class="timeline-item"><strong>T+15 min</strong><span>Primeros saltos GNSS o cambios bruscos de posición.</span></div>
+            <div class="timeline-item"><strong>T+40 min</strong><span>Aparecen niveles de combustible incompatibles con distancia y consumo.</span></div>
+            <div class="timeline-item"><strong>T+2 h</strong><span>Rutas reconstruidas que no coinciden con conductores ni operación real.</span></div>
+            <div class="timeline-item"><strong>T+4 h</strong><span>Fin de la anomalía, preservación de logs y comparación multifuente.</span></div>
+          </div>
+
+          <table class="risk-table">
+            <thead>
+              <tr><th>Hipótesis</th><th>Encaja porque</th><th>Evidencias esperadas</th><th>Cómo se descarta</th><th>Impacto</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Compromiso API/SaaS SGF</td><td>Afecta a varios vehículos y puede alterar rutas, combustible normalizado y dashboard.</td><td>Tokens anómalos, escrituras masivas, cambios de integración, logs IAM/API fuera de patrón.</td><td>Comparando datos crudos TCU con datos persistidos en cloud.</td><td>Pérdida de trazabilidad y posible manipulación operativa.</td></tr>
+              <tr><td>Replay o inyección de telemetría</td><td>Permite rutas falsas con mensajes aparentemente válidos si no hay frescura criptográfica.</td><td>Timestamps repetidos, nonces reutilizados, secuencias rotas, paquetes duplicados.</td><td>Validando firma, contador, hora de recepción y hora de generación.</td><td>Registro histórico contaminado.</td></tr>
+              <tr><td>Compromiso TCU/OBU</td><td>La TCU ve GNSS y CAN/OBD antes de enviar al backend.</td><td>Firmware no esperado, reinicios, certificados usados fuera de patrón, tráfico saliente raro.</td><td>Extracción forense de TCU y comparación con imagen firmada.</td><td>Vehículo como origen de datos no confiable.</td></tr>
+              <tr><td>GNSS spoofing/jamming</td><td>Explica saltos de localización y rutas imposibles.</td><td>SNR/CN0 anómalo, pérdida de satélites, discrepancia GNSS frente a IMU/odómetro.</td><td>Revisando si combustible y CAN permanecen coherentes.</td><td>Geofencing y rutas degradadas.</td></tr>
+              <tr><td>Manipulación CAN/OBD</td><td>Explica combustible irreal y señales internas imposibles.</td><td>Tramas CAN fuera de frecuencia, DTCs, valores fuera de rango, cambios bruscos sin repostaje.</td><td>Contraste con sensor físico, histórico de consumo y repostajes.</td><td>Mantenimiento, fraude y decisiones de operación erróneas.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Hipótesis</th><th>Alcance</th><th>Explica posición</th><th>Explica combustible</th><th>Explica 25 vehículos</th><th>Prioridad de investigación</th></tr></thead>
+            <tbody>
+              <tr><td>Compromiso API/SaaS SGF</td><td>Flota/plataforma</td><td>Sí</td><td>Sí, si altera datos normalizados</td><td>Sí</td><td>1</td></tr>
+              <tr><td>Replay o inyección de telemetría</td><td>Canal/broker</td><td>Sí</td><td>Sí, si incluye payload CAN/OBD</td><td>Sí, si afecta a credenciales o topic compartido</td><td>2</td></tr>
+              <tr><td>Compromiso TCU/OBU</td><td>Vehículo/dispositivo</td><td>Sí</td><td>Sí</td><td>Depende de modelo, firmware o lote común</td><td>3</td></tr>
+              <tr><td>GNSS spoofing/jamming</td><td>Zona RF</td><td>Sí</td><td>No por sí solo</td><td>Sí, si estaban en la misma zona</td><td>4</td></tr>
+              <tr><td>Manipulación CAN/OBD</td><td>Vehículo/local</td><td>No directamente</td><td>Sí</td><td>Solo si hay patrón común de dispositivo o taller</td><td>5</td></tr>
+            </tbody>
+          </table>
+
+          <div class="decision-tree">
+            <div class="decision-node"><strong>1. ¿Fallan datos crudos o solo dashboard?</strong><span>Si el dato crudo es correcto y el panel no, mirar API, normalización, base de datos o BI.</span></div>
+            <div class="decision-node"><strong>2. ¿Hay coherencia entre GNSS, IMU y odómetro?</strong><span>Si GNSS salta pero IMU/CAN no, sospechar spoofing, jamming o reconstrucción errónea.</span></div>
+            <div class="decision-node"><strong>3. ¿Los mensajes tienen frescura?</strong><span>Secuencias, nonces, timestamps y recepción deben cerrar sin duplicados ni huecos raros.</span></div>
+            <div class="decision-node"><strong>4. ¿Comparten proveedor, firmware, SIM o tenant?</strong><span>La coincidencia técnica entre 25 vehículos pesa más que la coincidencia geográfica aislada.</span></div>
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>Síntomas</h3>
+              <ul>
+                <li>Saltos de 20-30 km.</li>
+                <li>Combustible físicamente improbable.</li>
+                <li>Rutas no reconocidas por conductores.</li>
+                <li>Afectación simultánea a 25 vehículos.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Causas probables</h3>
+              <ul>
+                <li>Manipulación GNSS/PNT.</li>
+                <li>Replay o inyección de telemetría.</li>
+                <li>TCU o broker comprometido.</li>
+                <li>Fallo o abuso de API/cloud.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Evidencias críticas</h3>
+              <ul>
+                <li>Logs IAM, API Gateway y broker.</li>
+                <li>Telemetría cruda antes de normalizar.</li>
+                <li>Secuencias, timestamps y certificados.</li>
+                <li>GNSS, IMU, CAN/OBD y tacógrafo.</li>
+              </ul>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Capa</th><th>Riesgo</th><th>Control preventivo</th><th>Control detectivo</th><th>Evidencia</th></tr></thead>
+            <tbody>
+              <tr><td>Vehículo</td><td>Tramas falsas o sensores incoherentes.</td><td>Gateway seguro, hardening ECU, control OBD.</td><td>IDS CAN y plausibilidad física.</td><td>DTCs, tramas CAN, odómetro, consumo.</td></tr>
+              <tr><td>TCU/OBU</td><td>Origen de datos comprometido.</td><td>Secure boot, firmware firmado, HSM/TPM.</td><td>Attestation, inventario de firmware, logs de reinicio.</td><td>Hash firmware, certificado, configuración.</td></tr>
+              <tr><td>Comunicaciones</td><td>MITM, replay o pérdida de continuidad.</td><td>mTLS, nonces, timestamps, rotación de claves.</td><td>Detección de duplicados, latencia y reintentos.</td><td>PCAP, broker logs, secuencias.</td></tr>
+              <tr><td>Cloud/API</td><td>Manipulación masiva o abuso de privilegios.</td><td>RBAC, MFA, rate limiting, segregación tenant.</td><td>SIEM, UEBA, alertas IAM/API.</td><td>CloudTrail/logs, tokens, cambios admin.</td></tr>
+              <tr><td>Operación</td><td>Decisiones basadas en datos falsos.</td><td>Procedimientos de verificación y doble fuente.</td><td>Conciliación con conductores y evidencias externas.</td><td>Albaranes, peajes, partes, cámaras.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Cadena de custodia digital</h3>
+              <ul>
+                <li>Exportar logs en solo lectura y calcular hash SHA-256.</li>
+                <li>Registrar origen, hora UTC, responsable y herramienta usada.</li>
+                <li>Separar evidencia cruda, evidencia normalizada y capturas de panel.</li>
+                <li>Conservar copia inmutable de broker, API, IAM, TCU y base de datos.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Trazabilidad de tiempo</h3>
+              <ul>
+                <li>Unificar zona horaria y revisar deriva NTP/PTP/GNSS.</li>
+                <li>Distinguir hora de captura, hora de envío y hora de ingestión.</li>
+                <li>Buscar ráfagas de reintentos tras pérdida de cobertura.</li>
+                <li>Marcar eventos fuera de orden antes de reconstruir rutas.</li>
+              </ul>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Evidencia</th><th>Fuente</th><th>Pregunta que responde</th><th>Riesgo si falta</th></tr></thead>
+            <tbody>
+              <tr><td>Telemetría cruda</td><td>TCU, broker MQTT, cola Kafka o ingesta</td><td>¿El dato nació mal o se alteró después?</td><td>Confundir fallo de panel con incidente en vehículo.</td></tr>
+              <tr><td>Logs IAM/API</td><td>IdP, API Gateway, SaaS SGF</td><td>¿Quién leyó, escribió o reconfiguró durante la ventana?</td><td>No poder probar abuso de credenciales.</td></tr>
+              <tr><td>Datos RF/PNT</td><td>Receptor GNSS, calidad de fix, SNR/CN0</td><td>¿Hubo degradación de señal o posición artificial?</td><td>Atribuir a cloud lo que empezó en capa radio.</td></tr>
+              <tr><td>CAN/OBD/tacógrafo</td><td>Vehículo y registros legales/operativos</td><td>¿Combustible, velocidad y distancia son físicamente plausibles?</td><td>Aceptar telemetría imposible como dato válido.</td></tr>
+              <tr><td>Evidencia externa</td><td>Peajes, repostajes, albaranes, GPS móvil, cámaras</td><td>¿Qué ocurrió fuera del SGF?</td><td>Depender de una única fuente comprometible.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Marco</th><th>Aplicación en el caso</th><th>Evidencia asociada</th></tr></thead>
+            <tbody>
+              <tr><td>MITRE ATT&CK / ICS</td><td>Ordenar técnicas como valid accounts, replay, data manipulation, denial of service o impair process control.</td><td>Relación entre táctica, técnica, activo y log.</td></tr>
+              <tr><td>ISO/SAE 21434</td><td>Tratar TCU, OTA, sensores y backend como elementos de ciberseguridad automotriz.</td><td>Análisis de amenazas, activos, mitigaciones y trazabilidad.</td></tr>
+              <tr><td>UNECE R155/R156</td><td>Conectar el incidente con gestión de riesgos, monitorización y actualización segura.</td><td>Registro de incidente, respuesta, cambios OTA y controles.</td></tr>
+              <tr><td>ENS / ISO 27001</td><td>Gobernar identidad, logging, continuidad, proveedores y conservación de evidencias.</td><td>Controles IAM, retención, auditoría y gestión de terceros.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="subsection-label">Criterios de investigación y cierre</div>
+
+          <table class="risk-table">
+            <thead><tr><th>Criterio</th><th>Valor observado</th><th>Justificación</th><th>Lectura operativa</th></tr></thead>
+            <tbody>
+              <tr><td>Tipo de incidente</td><td>Integridad de telemetría</td><td>Los datos no desaparecen simplemente: aparecen ubicaciones, combustible y rutas no confiables.</td><td>Priorizar validación de origen, frescura y transformación del dato.</td></tr>
+              <tr><td>Duración</td><td>4 horas</td><td>Ventana suficiente para afectar planificación, reporting y decisiones de explotación.</td><td>Reconstruir línea temporal con granularidad por minuto.</td></tr>
+              <tr><td>Alcance</td><td>25 vehículos</td><td>Demasiados activos para tratarlo como fallo aislado de un conductor o receptor concreto.</td><td>Buscar punto común: tenant, firmware, SIM, proveedor, API, zona o política IAM.</td></tr>
+              <tr><td>Datos afectados</td><td>Posición, combustible y rutas</td><td>Combina capa PNT, capa vehículo y capa backend.</td><td>Investigar como cadena, no como síntoma único.</td></tr>
+              <tr><td>Capacidad de reconstrucción</td><td>Pendiente de evidencias crudas</td><td>Sin datos originales, el dashboard no basta como prueba.</td><td>Preservar y comparar fuentes antes de corregir registros.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Activo</th><th>Propietario funcional</th><th>Función en el caso</th><th>Evidencia necesaria</th><th>Decisión</th></tr></thead>
+            <tbody>
+              <tr><td>TCU/OBU</td><td>Proveedor telemático / mantenimiento</td><td>Origen de GNSS, CAN/OBD y conectividad.</td><td>Firmware, certificado, logs locales, reinicios, configuración.</td><td>Aislar muestra representativa y comparar con baseline.</td></tr>
+              <tr><td>Broker MQTT / cola</td><td>Equipo plataforma IoT</td><td>Transporte y orden de eventos.</td><td>Topics, QoS, retenciones, duplicados, timestamps, client IDs.</td><td>Bloquear credenciales sospechosas y extraer trazas.</td></tr>
+              <tr><td>API Gateway</td><td>Equipo cloud/backend</td><td>Entrada a servicios y normalización.</td><td>Logs de acceso, errores, rate limits, tokens, cambios de rutas.</td><td>Revisar abuso de API y escrituras anómalas.</td></tr>
+              <tr><td>IAM/IdP</td><td>Seguridad corporativa</td><td>Identidad de usuarios, servicios y dispositivos.</td><td>Sesiones, MFA, roles, cambios de permisos, origen IP.</td><td>Rotar credenciales y revisar privilegios.</td></tr>
+              <tr><td>Operación de flota</td><td>Gestor de flota</td><td>Contraste con realidad operacional.</td><td>Partes, albaranes, peajes, repostajes, declaraciones de conductor.</td><td>Validar impacto y corregir decisiones afectadas.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Preguntas de investigación</h3>
+              <ul>
+                <li>¿Los 25 vehículos comparten modelo de TCU, versión de firmware o lote de instalación?</li>
+                <li>¿Comparten operador SIM/eSIM, APN, zona geográfica o proveedor de conectividad?</li>
+                <li>¿El combustible falso aparece antes, durante o después de los saltos de ubicación?</li>
+                <li>¿La ruta falsa nace en el vehículo, en el broker o en el backend de visualización?</li>
+                <li>¿Hay cambios de roles, API keys, certificados o reglas de procesamiento durante la ventana?</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Punto común a buscar</h3>
+              <ul>
+                <li>Mismo tenant SaaS, endpoint API o pipeline de ingesta.</li>
+                <li>Mismo certificado raíz, CA intermedia o perfil mTLS.</li>
+                <li>Mismo topic MQTT, client ID, broker o regla de transformación.</li>
+                <li>Misma zona RF, pérdida GNSS o estación base sospechosa.</li>
+                <li>Misma intervención de taller, actualización OTA o configuración remota.</li>
+              </ul>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Dato</th><th>Fuente primaria</th><th>Fuente secundaria</th><th>Validación</th><th>Confianza esperada</th></tr></thead>
+            <tbody>
+              <tr><td>Posición</td><td>GNSS TCU</td><td>IMU, odómetro, cell-ID, mapa</td><td>Continuidad, velocidad posible, calidad de fix, ruta prevista.</td><td>Media si solo hay GNSS; alta si coincide multifuente.</td></tr>
+              <tr><td>Combustible</td><td>CAN/OBD</td><td>Repostajes, consumo esperado, distancia recorrida</td><td>Cambios progresivos, rangos físicos, correlación con conducción.</td><td>Alta si CAN, repostaje y consumo cuadran.</td></tr>
+              <tr><td>Ruta</td><td>Secuencia GNSS</td><td>Tacógrafo, peajes, albaranes, conductor</td><td>Orden temporal, distancia, paradas y eventos externos.</td><td>Alta si hay confirmación externa.</td></tr>
+              <tr><td>Identidad vehículo</td><td>Certificado TCU</td><td>VIN, inventario, SIM/eSIM, huella firmware</td><td>mTLS, attestation, no duplicidad de identidad.</td><td>Alta si certificado y dispositivo coinciden.</td></tr>
+              <tr><td>Evento cloud</td><td>API/SIEM</td><td>Broker, base de datos, logs aplicación</td><td>Correlación entre petición, escritura y visualización.</td><td>Media hasta contrastar con telemetría cruda.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Prueba</th><th>Objetivo</th><th>Resultado esperado</th><th>Confirma</th><th>Descarta o debilita</th></tr></thead>
+            <tbody>
+              <tr><td>Comparar crudo TCU vs dashboard</td><td>Localizar dónde cambia el dato.</td><td>Coincidencia o divergencia clara por campo y timestamp.</td><td>Fallo de origen o fallo de backend.</td><td>Hipótesis que no afecten a esa capa.</td></tr>
+              <tr><td>Validar secuencias y nonces</td><td>Detectar replay o inyección.</td><td>Secuencia continua sin duplicados ni saltos inexplicables.</td><td>Frescura criptográfica o abuso de credenciales.</td><td>Replay simple si todo es consistente.</td></tr>
+              <tr><td>Correlación GNSS-IMU-CAN</td><td>Medir plausibilidad física.</td><td>Trayectoria posible según velocidad, aceleración y distancia.</td><td>Spoofing, jamming o reconstrucción errónea.</td><td>Fallo puramente administrativo.</td></tr>
+              <tr><td>Revisión IAM/API durante 4 h</td><td>Buscar actividad humana o de servicio anómala.</td><td>Accesos coherentes con patrón habitual.</td><td>Abuso de token, rol o cuenta administrativa.</td><td>Compromiso cloud si no hay indicios.</td></tr>
+              <tr><td>Comparar vehículos afectados/no afectados</td><td>Identificar punto común.</td><td>Diferencia objetiva de firmware, SIM, zona, proveedor o tenant.</td><td>Causa sistémica.</td><td>Atribuciones genéricas sin patrón.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Condición de cierre</th><th>Qué debe quedar probado</th><th>Responsable</th><th>Riesgo residual</th></tr></thead>
+            <tbody>
+              <tr><td>Causa raíz documentada</td><td>Capa afectada, vector probable y evidencia que lo soporta.</td><td>Seguridad + plataforma + proveedor.</td><td>Medio si el proveedor no entrega logs completos.</td></tr>
+              <tr><td>Telemetría reconciliada</td><td>Registros corregidos o marcados como no confiables.</td><td>Operación de flota.</td><td>Bajo si hay evidencia externa suficiente.</td></tr>
+              <tr><td>Credenciales revisadas</td><td>Tokens, certificados, API keys y roles rotados o validados.</td><td>IAM / cloud.</td><td>Medio si existen integraciones heredadas.</td></tr>
+              <tr><td>Detecciones implantadas</td><td>Reglas para saltos, combustible imposible, replay y uso anómalo de API.</td><td>SOC / SIEM.</td><td>Bajo si se prueba con eventos históricos.</td></tr>
+              <tr><td>Proveedor evaluado</td><td>SLA de logging, retención, exportación forense y notificación de incidentes.</td><td>Compras / seguridad / legal.</td><td>Alto si la trazabilidad depende de una caja negra SaaS.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="subsection-label">Paquete operativo para SOC, plataforma y flota</div>
+
+          <div class="exec-summary">
+            <div><strong>Incidente</strong><span>Integridad de telemetría con ubicación, combustible y rutas no confiables.</span></div>
+            <div><strong>Alcance</strong><span>25 vehículos durante 4 horas, con posible punto común técnico.</span></div>
+            <div><strong>Hipótesis principal</strong><span>Alteración en capa compartida: TCU, broker, API, credenciales o pipeline.</span></div>
+            <div><strong>Evidencia prioritaria</strong><span>Telemetría cruda, logs IAM/API, broker, GNSS/IMU/CAN y evidencias externas.</span></div>
+            <div><strong>Decisión recomendada</strong><span>Preservar, contener credenciales, reconciliar datos y abrir revisión de proveedor.</span></div>
+          </div>
+
+          <div class="data-flow" aria-label="Flujo de confianza del dato">
+            <div><strong>Vehículo</strong><span>CAN, OBD-II, sensores, GNSS</span></div>
+            <div><strong>TCU</strong><span>Firma, secuencia, firmware, certificado</span></div>
+            <div><strong>MQTT/TLS</strong><span>mTLS, topic, QoS, timestamp</span></div>
+            <div><strong>API Gateway</strong><span>Token, rate limit, autorización</span></div>
+            <div><strong>Backend</strong><span>Normalización, reglas, data lake</span></div>
+            <div><strong>Dashboard</strong><span>Ruta, alertas, operación</span></div>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Salto del flujo</th><th>Qué se valida</th><th>Qué puede fallar</th><th>Log que lo prueba</th></tr></thead>
+            <tbody>
+              <tr><td>Vehículo → TCU</td><td>Origen CAN/GNSS, frecuencia, rango físico.</td><td>Sensor manipulado, tramas falsas, firmware alterado.</td><td>Log TCU, DTC, captura CAN, inventario firmware.</td></tr>
+              <tr><td>TCU → MQTT/TLS</td><td>Certificado, secuencia, firma, client ID.</td><td>Replay, suplantación, clave extraída, topic indebido.</td><td>Broker logs, mTLS handshake, errores de autenticación.</td></tr>
+              <tr><td>MQTT/TLS → API</td><td>Orden, duplicados, latencia, transformación.</td><td>Colas retenidas, reintentos, normalización defectuosa.</td><td>Kafka/MQTT offsets, API Gateway, trazas de ingesta.</td></tr>
+              <tr><td>API → Backend</td><td>Autorización, tenant, payload, reglas de negocio.</td><td>BOLA/IDOR, token abusado, escritura masiva.</td><td>IAM, WAF, API logs, cambios de configuración.</td></tr>
+              <tr><td>Backend → Dashboard</td><td>Consulta, agregación, cálculo de ruta.</td><td>Visualización errónea, caché, dato corregido sin trazabilidad.</td><td>Query logs, auditoría BI, histórico de cambios.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Actividad</th><th>Seguridad</th><th>Operación flota</th><th>Proveedor TCU/SaaS</th><th>Cloud/backend</th><th>Legal/compliance</th></tr></thead>
+            <tbody>
+              <tr><td>Declarar incidente</td><td>R</td><td>C</td><td>I</td><td>C</td><td>I</td></tr>
+              <tr><td>Preservar evidencias</td><td>A/R</td><td>C</td><td>R</td><td>R</td><td>C</td></tr>
+              <tr><td>Contrastar rutas reales</td><td>C</td><td>A/R</td><td>I</td><td>I</td><td>I</td></tr>
+              <tr><td>Rotar credenciales/certificados</td><td>A</td><td>I</td><td>R</td><td>R</td><td>I</td></tr>
+              <tr><td>Comunicación y reporte</td><td>C</td><td>A/R</td><td>I</td><td>I</td><td>A/R</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Ventana</th><th>Acción</th><th>Objetivo</th><th>Salida esperada</th></tr></thead>
+            <tbody>
+              <tr><td>0-15 min</td><td>Congelar evidencias y etiquetar 25 vehículos.</td><td>Evitar pérdida de trazas.</td><td>Listado de activos, ventana UTC y responsables.</td></tr>
+              <tr><td>15-60 min</td><td>Comparar telemetría cruda, dashboard y fuentes externas.</td><td>Ubicar la capa donde diverge el dato.</td><td>Primer mapa de hipótesis y descarte.</td></tr>
+              <tr><td>1-4 h</td><td>Revisar IAM/API, broker, TCU, GNSS/IMU/CAN.</td><td>Confirmar punto común y contener credenciales.</td><td>Acciones de contención y evidencias hashadas.</td></tr>
+              <tr><td>24 h</td><td>Reconciliar datos, activar detecciones y revisar proveedor.</td><td>Restaurar confianza operativa.</td><td>Informe de impacto y reglas de monitorización.</td></tr>
+              <tr><td>Cierre</td><td>Documentar causa raíz, lecciones y riesgo residual.</td><td>Evitar repetición y dejar trazabilidad.</td><td>Plan de mejora y aceptación de riesgo.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Indicador</th><th>Regla de detección</th><th>Fuente</th><th>Respuesta</th></tr></thead>
+            <tbody>
+              <tr><td>Salto GPS imposible</td><td>Distancia > 20 km sin velocidad CAN compatible.</td><td>GNSS, CAN speed, odómetro.</td><td>Marcar posición como no confiable y pedir validación multifuente.</td></tr>
+              <tr><td>Combustible incoherente</td><td>Cambio > umbral sin repostaje ni consumo proporcional.</td><td>CAN/OBD, repostajes, odómetro.</td><td>Bloquear cálculo automático de consumo y abrir revisión.</td></tr>
+              <tr><td>Replay</td><td>Sequence ID repetido, timestamp antiguo o nonce reutilizado.</td><td>Broker, TCU, API Gateway.</td><td>Revocar credencial del dispositivo y aislar topic.</td></tr>
+              <tr><td>Abuso de API</td><td>Escrituras fuera de horario, volumen o rol habitual.</td><td>IAM, API logs, SIEM.</td><td>Suspender token, revisar rol y conservar trazas.</td></tr>
+              <tr><td>Punto común de flota</td><td>Vehículos afectados comparten firmware, SIM, CA o tenant.</td><td>Inventario CMDB/SGF.</td><td>Crear grupo de contención y revisar despliegue.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>Pseudoconsulta SIEM: salto físico</h3>
+              <pre class="code-query"><code>telemetry
+| where distance_jump_km &gt; 20
+| where can_speed_kmh &lt; 40
+| project vehicle_id, tcu_id, timestamp_device, lat, lon, can_speed_kmh</code></pre>
+            </article>
+            <article class="card">
+              <h3>Pseudoconsulta SIEM: replay</h3>
+              <pre class="code-query"><code>telemetry
+| summarize count() by tcu_id, sequence_id, timestamp_device
+| where count_ &gt; 1
+| project tcu_id, sequence_id, timestamp_device, count_</code></pre>
+            </article>
+            <article class="card">
+              <h3>Pseudoconsulta SIEM: API</h3>
+              <pre class="code-query"><code>api_logs
+| where action in ("writeTelemetry","updateRoute")
+| where source_ip notin trusted_ranges
+| summarize writes=count() by principal, hour</code></pre>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Campo mínimo</th><th>Uso</th><th>Observación</th></tr></thead>
+            <tbody>
+              <tr><td>vehicle_id, vin, tcu_id</td><td>Identidad y correlación.</td><td>Deben evitar duplicidades y suplantaciones.</td></tr>
+              <tr><td>timestamp_device, timestamp_ingest</td><td>Orden temporal y latencia.</td><td>Separar hora de generación y hora de recepción.</td></tr>
+              <tr><td>lat, lon, gnss_quality, satellites, cn0</td><td>Validación PNT.</td><td>Permiten sospechar spoofing, jamming o fix degradado.</td></tr>
+              <tr><td>fuel_level, odometer, can_speed</td><td>Plausibilidad física.</td><td>Combustible, distancia y velocidad deben cuadrar.</td></tr>
+              <tr><td>sequence_id, nonce, signature_status</td><td>Frescura e integridad.</td><td>Base para antirreplay y autenticidad por dispositivo.</td></tr>
+              <tr><td>firmware_version, cert_fingerprint, tenant_id</td><td>Punto común y alcance.</td><td>Clave para comparar afectados/no afectados.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Errores de diagnóstico comunes</h3>
+              <ul>
+                <li>Usar el dashboard como evidencia primaria sin recuperar dato crudo.</li>
+                <li>Corregir rutas antes de preservar logs y hashes.</li>
+                <li>No separar fallo de proveedor, fallo de integración y ataque real.</li>
+                <li>Ignorar desfases horarios entre TCU, backend y SIEM.</li>
+                <li>No comparar vehículos afectados contra no afectados.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Mejora posterior</h3>
+              <ul>
+                <li>mTLS por dispositivo, rotación de claves y attestation TCU.</li>
+                <li>Logs WORM, exportación forense y retención contractual.</li>
+                <li>Reglas de replay, plausibilidad física y calidad GNSS.</li>
+                <li>Dashboard de confianza del dato y alertas por punto común.</li>
+                <li>Pruebas controladas de spoofing, jamming y pérdida de conectividad.</li>
+              </ul>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Defensa oral</th><th>Respuesta breve</th></tr></thead>
+            <tbody>
+              <tr><td>¿Por qué no es solo GPS?</td><td>Porque también falla combustible, que depende de CAN/OBD o del backend, no de la posición satelital.</td></tr>
+              <tr><td>¿Por qué importa que sean 25 vehículos?</td><td>Porque obliga a buscar una dependencia compartida: proveedor, firmware, SIM, API, broker, tenant o zona RF.</td></tr>
+              <tr><td>¿Qué evidencia pediría primero?</td><td>Telemetría cruda, logs IAM/API, broker, TCU y contraste con IMU/CAN/tacógrafo.</td></tr>
+              <tr><td>¿Cuál es la idea central?</td><td>No confiar en una sola fuente: reconstruir la verdad por correlación y preservar evidencias antes de corregir.</td></tr>
+              <tr><td>¿Qué mejora queda clara?</td><td>Validación multisensor, antirreplay, mTLS por dispositivo, logging inmutable y detección de plausibilidad.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Qué no asumir</h3>
+              <ul>
+                <li>No asumir que todo es GPS si también falla combustible.</li>
+                <li>No atribuirlo al conductor sin contrastar fuentes independientes.</li>
+                <li>No concluir ataque cloud sin revisar TCU, broker y credenciales.</li>
+                <li>No tocar configuraciones antes de preservar logs y datos crudos.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Decisión de respuesta</h3>
+              <ul>
+                <li>Contener tokens, certificados y cuentas con actividad anómala.</li>
+                <li>Preservar logs WORM y telemetría cruda de las 4 horas.</li>
+                <li>Comparar GNSS con IMU, CAN, tacógrafo y ruta prevista.</li>
+                <li>Documentar alcance, vehículos afectados y criterio de descarte.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="conclusion-curso">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Conclusión del curso</div>
+              <h2 class="section-title">La flota conectada ya es una infraestructura ciberfísica crítica</h2>
+              <p class="section-subtitle">
+                El curso no va solo de proteger un GPS o un portal web. Engloba vehículo, sensores, redes internas, TCU/OBU, comunicaciones RF y celulares, cloud, APIs, identidades, OTA, usuarios, proveedores y operación diaria. La ciberseguridad de flotas consiste en proteger una cadena de confianza donde un dato falso puede convertirse en una decisión operativa equivocada.
+              </p>
+            </div>
+            <div class="chip-row">
+              <span class="chip">Automoción</span>
+              <span class="chip">SDV</span>
+              <span class="chip">V2X</span>
+              <span class="chip">Cloud</span>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>Del vehículo al ecosistema</h3>
+              <p>El vehículo deja de ser una máquina aislada: es un nodo conectado con ECUs, CAN, sensores, GNSS, TCU, backend, usuarios y terceros.</p>
+            </article>
+            <article class="card">
+              <h3>Del dato a la decisión</h3>
+              <p>La telemetría alimenta rutas, mantenimiento, geocercas, consumo, seguridad, cumplimiento y respuesta a incidentes. Si el dato se manipula, la decisión también.</p>
+            </article>
+            <article class="card">
+              <h3>De la avería al incidente</h3>
+              <p>Un salto GPS, un combustible imposible o una ruta falsa no deben verse solo como errores: pueden ser síntomas de spoofing, replay, compromiso TCU o fallo cloud.</p>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Idea central:</strong> la seguridad de un SGF moderno exige defensa en profundidad. Hay que validar sensores, proteger firmware, autenticar dispositivos, cifrar comunicaciones, controlar APIs, monitorizar cloud, preservar evidencias y diseñar para que un fallo no afecte a toda la flota.
+          </div>
+        </section>
+
+        <section class="panel" id="mapa">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Mapa conceptual</div>
+              <h2 class="section-title">El SGF como ecosistema distribuido</h2>
+              <p class="section-subtitle">
+                Un Sistema de Gestion de Flotas funciona como una cadena. El vehiculo genera datos, la TCU los recoge, las comunicaciones los transportan, el cloud los procesa y las personas o sistemas automatizados actuan sobre ellos.
+              </p>
+            </div>
+            <div class="chip-row">
+              <span class="chip">IoT</span>
+              <span class="chip">Telemetria</span>
+              <span class="chip">Zero Trust</span>
+            </div>
+          </div>
+
+          <div class="flow">
+            <div class="flow-item"><strong>1. Vehiculo</strong><span>ECUs, CAN, CAN-FD, LIN, FlexRay, Automotive Ethernet y OBD-II.</span></div>
+            <div class="flow-item"><strong>2. TCU / OBU</strong><span>Unidad telematica, firmware, secure boot, HSM/TPM y certificados.</span></div>
+            <div class="flow-item"><strong>3. Sensores</strong><span>GNSS, IMU, ADAS, dashcams, RFID/BLE y sensores de carga.</span></div>
+            <div class="flow-item"><strong>4. Comunicaciones</strong><span>LTE, 5G, NB-IoT, Wi-Fi, BLE, MQTT, HTTPS/TLS, WebSockets y Kafka.</span></div>
+            <div class="flow-item"><strong>5. Cloud</strong><span>APIs, data lake, stream processing, IA/ML y almacenamiento.</span></div>
+            <div class="flow-item"><strong>6. Operacion</strong><span>Portal, app movil, IAM, SIEM, OTA, logging y respuesta.</span></div>
+          </div>
+        </section>
+
+        <section class="panel" id="dia1">
+          <div class="eyebrow">Dia 1 - fundamentos</div>
+          <h2 class="section-title">Lo visto antes de entrar en arquitectura avanzada</h2>
+          <p class="section-subtitle">
+            El primer dia situa el problema: el vehiculo conectado forma parte de un ecosistema de ciberseguridad donde intervienen acceso fisico, acceso remoto, aplicaciones, servidores, clientes, personal, logistica e infraestructura.
+          </p>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>Contexto UNECE/R155</h3>
+              <p>La preocupacion por la ciberseguridad del vehiculo crece desde vulnerabilidades publicas, casos mediaticos y el trabajo de WP.29, hasta la aprobacion de UNECE R155/R156.</p>
+            </article>
+            <article class="card">
+              <h3>Tecnologias que aumentan riesgo</h3>
+              <p>Sensorizacion, ADAS, inteligencia artificial, vehiculo autonomo y vehiculo electrico amplian la superficie de ataque y la dependencia de software.</p>
+            </article>
+            <article class="card">
+              <h3>Telemetria del vehiculo</h3>
+              <p>Posicion GPS, rutas, velocidad, direccion, aceleracion, frenadas, kilometraje, bateria, consumo, presiones, DTCs y estado mecanico.</p>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Pregunta del dia 1</th><th>Contenido cubierto</th><th>Relacion con SGF</th></tr></thead>
+            <tbody>
+              <tr><td>Que datos se envian</td><td>Localizacion, movimiento, estado del vehiculo, conduccion, energia, diagnostico y eventos.</td><td>Alimentan seguimiento, mantenimiento, seguridad, consumo y trazabilidad.</td></tr>
+              <tr><td>Para quien se envian</td><td>Fabricante, talleres autorizados, mapas, aseguradoras, emergencias, gestor de flota y operador.</td><td>Cada receptor crea valor, pero tambien una dependencia y una posible exposicion.</td></tr>
+              <tr><td>Como viajan</td><td>SIM 4G/5G, Wi-Fi, apps moviles, smartphone conectado, TCU, dongle OBD-II, CAN, BLE/USB y cloud.</td><td>La ruta del dato define la superficie de ataque.</td></tr>
+              <tr><td>Vulnerabilidades iniciales</td><td>OBD-II, microcontrolador, memoria, sensores, GNSS, modem celular, USB/BLE, cloud y aplicaciones.</td><td>Son la base de los vectores del dia 2.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="elementos">
+          <div class="eyebrow">Base tecnica</div>
+          <h2 class="section-title">Seis elementos tecnologicos principales</h2>
+          <div class="grid-3">
+            <article class="card">
+              <h3>Vehiculo y redes internas</h3>
+              <p>El vehiculo es el nodo IoT critico. Redes como CAN no incorporan autenticacion ni cifrado nativos, asi que la segmentacion es clave.</p>
+            </article>
+            <article class="card">
+              <h3>TCU / OBU</h3>
+              <p>La unidad telematica conecta el vehiculo con el exterior. Si cae o se compromete, se rompe buena parte de la confianza del SGF.</p>
+            </article>
+            <article class="card">
+              <h3>Sensores y GNSS</h3>
+              <p>Localizacion, movimiento, temperatura, apertura de puertas, estilo de conduccion y trazabilidad dependen de sensores fiables.</p>
+            </article>
+            <article class="card">
+              <h3>Comunicaciones</h3>
+              <p>Los datos viajan por redes publicas y privadas. mTLS, rotacion de claves y autenticacion de cliente no son opcionales.</p>
+            </article>
+            <article class="card">
+              <h3>Backend cloud y APIs</h3>
+              <p>Convierte telemetria en decisiones: rutas, alertas, mantenimiento predictivo, informes y correlacion de eventos.</p>
+            </article>
+            <article class="card">
+              <h3>IAM, SIEM y OTA</h3>
+              <p>Gestionan acceso, RBAC/ABAC, trazabilidad, respuesta a incidentes y actualizaciones. Son piezas de seguridad y tambien posibles SPoF.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="datos">
+          <div class="eyebrow">Datos y criticidad</div>
+          <h2 class="section-title">Tipos de datos que maneja un SGF</h2>
+          <div class="grid-2">
+            <article class="card">
+              <h3>Operativos</h3>
+              <p>Posicion, rutas, geocercas, tiempos parado, entradas/salidas de zonas, disponibilidad de vehiculos y eventos de servicio.</p>
+            </article>
+            <article class="card">
+              <h3>Personales</h3>
+              <p>Identidad del conductor, credenciales, asignacion de vehiculo, habitos de conduccion e historico de localizacion.</p>
+            </article>
+            <article class="card">
+              <h3>Tecnicos</h3>
+              <p>DTCs, ECUs, OBD-II, estado de bateria, temperatura, consumo, RPM, firmware, redes internas y diagnostico.</p>
+            </article>
+            <article class="card">
+              <h3>Estrategicos</h3>
+              <p>Patrones operativos, clientes, rutas comerciales, uso de activos, productividad, costes y estrategia logistica.</p>
+            </article>
+          </div>
+          <div class="callout">
+            <strong>Idea clave:</strong> la criticidad no depende de un dato aislado, sino de la correlacion. Cuatro puntos de localizacion pueden ser suficientes para perfilar a una persona o inferir rutinas sensibles.
+          </div>
+        </section>
+
+        <section class="panel" id="dependencias">
+          <div class="eyebrow">Dependencias criticas</div>
+          <h2 class="section-title">Si falla una pieza, la flota pierde capacidad real</h2>
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th>Dependencia</th>
+                <th>Que falla</th>
+                <th>Que se pierde</th>
+                <th>Impacto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Conectividad celular y GNSS</td>
+                <td>LTE/5G/NB-IoT, GPS, Galileo, GLONASS o cobertura.</td>
+                <td>Telemetria en tiempo real, geocercas, alertas y posicion.</td>
+                <td>El gestor deja de ver la flota con informacion actual.</td>
+              </tr>
+              <tr>
+                <td>APIs de fabricante/proveedor</td>
+                <td>API Gateway, mapas, mantenimiento, aseguradora o logistica.</td>
+                <td>DTCs, rutas, sincronizacion, comandos remotos o datos tecnicos.</td>
+                <td>El SGF sigue encendido, pero decide con vision parcial.</td>
+              </tr>
+              <tr>
+                <td>Identidad, certificados y cloud</td>
+                <td>PKI, tokens API, IAM, MFA, backend o tenant isolation.</td>
+                <td>Confianza en datos, control de acceso y proteccion RGPD.</td>
+                <td>Riesgo de suplantacion, fuga de datos o caida del servicio.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="gnss">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">GPS/GNSS spoofing</div>
+              <h2 class="section-title">Validar la posicion antes de usarla</h2>
+              <p class="section-subtitle">
+                La localizacion no debe tratarse como verdad absoluta. Si el GPS dice una cosa y los sensores internos otra, el SGF deberia desconfiar.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <h3>DBSCAN adaptativo</h3>
+              <p>El enfoque compara desplazamiento GNSS con desplazamiento esperado desde sensores internos como velocimetro, yaw/giroscopio e IMU. El umbral epsilon se adapta con la media y desviacion tipica de muestras limpias.</p>
+            </div>
+            <div class="card">
+              <h3>Por que importa</h3>
+              <p>Los ataques pequenos y progresivos pueden no superar umbrales fijos, pero acumulan una deriva peligrosa. El SGF podria mostrar una posicion coherente, pero falsa.</p>
+            </div>
+          </div>
+
+          <table class="risk-table">
+            <thead>
+              <tr><th>Ataque</th><th>Idea</th><th>Senal de deteccion</th><th>Impacto SGF</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Turn-by-turn</td><td>Desviar la ruta poco a poco.</td><td>Diferencia entre GNSS y sensores internos.</td><td>Rutas falsas y geocercas incorrectas.</td></tr>
+              <tr><td>Stop</td><td>Hacer que un parado parezca moverse.</td><td>Velocimetro parado, GPS con movimiento.</td><td>Alertas y tiempos de operacion falsos.</td></tr>
+              <tr><td>Overshoot</td><td>Hacer que un vehiculo en movimiento parezca parado.</td><td>IMU/velocidad indican movimiento, GPS no.</td><td>Seguimiento y decisiones erroneas.</td></tr>
+              <tr><td>Sesgo pequeno multiple</td><td>Desplazar la posicion en pasos minimos.</td><td>DBSCAN adaptativo detecta deriva acumulada.</td><td>Ataque dificil de ver con umbrales fijos.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="steer">
+          <div class="eyebrow">Sistema ciberfisico</div>
+          <h2 class="section-title">Steer-by-Wire y manipulacion de sensores</h2>
+          <p class="section-subtitle">
+            En direccion por cable desaparece la union mecanica entre volante y ruedas. El volante envia senales, sensores miden posicion/fuerza, una ECU calcula la respuesta y actuadores mueven la direccion.
+          </p>
+
+          <div class="grid-2">
+            <div class="card">
+              <h3>Ventajas</h3>
+              <ul>
+                <li>Menos peso y mas flexibilidad interior.</li>
+                <li>Mejor integracion con ADAS y conduccion autonoma.</li>
+                <li>Direccion configurable por software.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Riesgo</h3>
+              <ul>
+                <li>Ataque fisico/electromagnetico a sensores Hall.</li>
+                <li>Inyeccion de campo magnetico cerca del encoder.</li>
+                <li>Percepcion falsa de angulo, volante o cremallera.</li>
+                <li>Correcciones falsas, vibracion, subviraje o sobreviraje.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Paralelismo:</strong> GPS spoofing, CAN spoofing, ataques a sensores y fault injection tienen una misma raiz: manipular la percepcion de un sistema ciberfisico para que tome una decision incorrecta.
+          </div>
+        </section>
+
+        <section class="panel" id="ataques">
+          <div class="eyebrow">Capas de confianza</div>
+          <h2 class="section-title">Tecnicas de ataque por control defensivo</h2>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-identidad">Identidad</button>
+            <button class="tab-btn" data-tab="tab-cloud">Cloud</button>
+            <button class="tab-btn" data-tab="tab-logs">Logging</button>
+          </div>
+
+          <div class="tab-panel active" id="tab-identidad">
+            <table class="risk-table">
+              <thead><tr><th>Control</th><th>Tecnicas</th><th>Objetivo</th></tr></thead>
+              <tbody>
+                <tr><td>mTLS</td><td>TLS downgrade, rogue certificate, certificate spoofing, MITM via rogue BTS, replay, session hijacking, DNS hijacking.</td><td>Hacerse pasar por backend o vehiculo.</td></tr>
+                <tr><td>Certificados por dispositivo</td><td>Device cloning, key extraction, TPM/HSM extraction, rogue enrollment, fake TCU registration, VIN impersonation.</td><td>Suplantar una TCU legitima.</td></tr>
+                <tr><td>Rotacion de claves</td><td>Stale key abuse, revocation bypass, replay con credenciales antiguas, KMS compromise, trust store poisoning.</td><td>Mantener persistencia.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tab-cloud">
+            <table class="risk-table">
+              <thead><tr><th>Control</th><th>Tecnicas</th><th>Objetivo</th></tr></thead>
+              <tbody>
+                <tr><td>RBAC/IAM</td><td>Privilege escalation, BOLA/IDOR, tenant escape, overprivileged API tokens, JWT manipulation, shadow admin.</td><td>Acceder a vehiculos, rutas, OTA o dashboards.</td></tr>
+                <tr><td>MFA</td><td>MFA fatigue, SIM swapping, phishing proxy, AiTM, OAuth token theft, legacy auth bypass.</td><td>Comprometer cuentas administrativas.</td></tr>
+                <tr><td>Backend</td><td>Kubernetes compromise, API gateway abuse, CI/CD compromise, secrets leakage, MQTT broker compromise.</td><td>Tomar control de servicios centrales.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tab-logs">
+            <table class="risk-table">
+              <thead><tr><th>Control</th><th>Tecnicas</th><th>Objetivo</th></tr></thead>
+              <tbody>
+                <tr><td>Logging/SIEM</td><td>Log tampering, log deletion, SIEM evasion, alert suppression, false log injection, log flooding, anti-forensics.</td><td>Ocultar accesos, comandos remotos y movimientos laterales.</td></tr>
+                <tr><td>Telemetria</td><td>Telemetry poisoning, time synchronization spoofing, event correlation evasion.</td><td>Convertir un ataque en aparente error operativo.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" id="spof">
+          <div class="eyebrow">Single Point of Failure</div>
+          <h2 class="section-title">Evitar fallo catastrofico centralizado</h2>
+          <p class="section-subtitle">
+            En SGF modernos, el punto unico de fallo no siempre es un servidor. Puede ser una raiz de confianza: IAM, PKI, OTA signing, API Gateway, MQTT broker, IdP o pipeline CI/CD.
+          </p>
+
+          <div class="grid-3">
+            <div class="card"><h3>API Gateway</h3><p>Si se compromete la autenticacion, validacion de tokens o routing, afecta telemetria y comandos remotos.</p></div>
+            <div class="card"><h3>Vehicle PKI</h3><p>Si se compromete la CA o las claves de emision, se pueden suplantar dispositivos a escala de flota.</p></div>
+            <div class="card"><h3>OTA signing</h3><p>Si caen claves de firma o repositorio, el incidente se convierte en supply chain attack sobre vehiculos.</p></div>
+            <div class="card"><h3>MQTT broker</h3><p>Puede provocar perdida de telemetria, flooding, denegacion de servicio o manipulacion de eventos.</p></div>
+            <div class="card"><h3>Identity Provider</h3><p>Si cae el IdP, fallan conductores, paneles, APIs, proveedores y despliegues OTA.</p></div>
+            <div class="card"><h3>Mitigacion</h3><p>Multi-region, segmentacion, quorum approvals, canary deployments, rollback y reduccion del blast radius.</p></div>
+          </div>
+        </section>
+
+        <section class="panel" id="mercado">
+          <div class="eyebrow">Mercado y tipos de SGF</div>
+          <h2 class="section-title">Plataformas, despliegues y modelos conocidos</h2>
+          <p class="section-subtitle">
+            El curso muestra que los SGF han evolucionado desde soluciones GPS hacia plataformas integrales de telematica, analitica predictiva, flujos de trabajo conectados, IA y cumplimiento.
+          </p>
+
+          <div class="grid-3">
+            <article class="card"><h3>SGF SaaS</h3><p>Actualizaciones automaticas, escalado flexible, acceso web/movil y dependencia fuerte del proveedor.</p></article>
+            <article class="card"><h3>SGF on-premise</h3><p>Operacion en centros de datos propios, mas control y privacidad, pero mayor responsabilidad tecnica.</p></article>
+            <article class="card"><h3>SGF hibrido</h3><p>Combina cloud, edge y recursos propios para cumplir requisitos de privacidad, disponibilidad o normativa.</p></article>
+            <article class="card"><h3>SGF open source</h3><p>Traccar, OpenGTS, Open VTS o Fleetbase permiten control propio, laboratorio y aprendizaje.</p></article>
+            <article class="card"><h3>SGF OEM / fabricante</h3><p>Integrado con APIs del fabricante, datos tecnicos, mantenimiento y diagnostico del vehiculo.</p></article>
+            <article class="card"><h3>SGF sectorial</h3><p>Logistica, reparto, taxis, renting, servicios tecnicos, emergencias, construccion y transporte publico.</p></article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Plataforma citada</th><th>Enfoque</th><th>Riesgo/dependencia</th></tr></thead>
+            <tbody>
+              <tr><td>Geotab</td><td>Arquitectura abierta, SDKs, APIs y marketplace via OBD-II.</td><td>Dependencia de integraciones y permisos API.</td></tr>
+              <tr><td>Samsara</td><td>IoT, dashcams inteligentes e IA para insight operativo.</td><td>Gran volumen de datos sensibles y video/IA.</td></tr>
+              <tr><td>Verizon Connect</td><td>Escalabilidad empresarial, tracking y cumplimiento.</td><td>Dependencia SaaS y disponibilidad del proveedor.</td></tr>
+              <tr><td>Webfleet</td><td>SaaS robusto con foco en sostenibilidad y emisiones.</td><td>Lock-in y continuidad de servicio.</td></tr>
+              <tr><td>Mix Telematics / Wialon / Masternaut</td><td>Mercados globales, PaaS flexible o enfoque europeo corporativo.</td><td>Integracion heterogenea y terceros.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <strong>Riesgos de tercerizacion:</strong> disponibilidad del proveedor, seguridad de APIs, actualizaciones no controladas, lock-in tecnologico y segmentacion multi-tenant insuficiente.
+          </div>
+        </section>
+
+        <section class="panel" id="cumplimiento">
+          <div class="eyebrow">Normativa, proveedores y evidencias</div>
+          <h2 class="section-title">Cumplimiento y responsabilidad compartida</h2>
+          <div class="grid-2">
+            <article class="card">
+              <h3>Estanndares de referencia</h3>
+              <ul>
+                <li>ISO/SAE 21434: TARA, CSMS, gestion de vulnerabilidades y ciclo de vida.</li>
+                <li>UNECE R155: sistema de gestion de ciberseguridad.</li>
+                <li>UNECE R156: actualizaciones software OTA seguras.</li>
+                <li>ISO 27001: sistema de gestion de seguridad de la informacion para entornos cloud.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>RGPD en flotas</h3>
+              <p>El operador trata geolocalizacion, identificadores de conductor, habitos de conduccion e historico de rutas. Debe aplicar minimizacion, finalidad, transparencia, integridad y DPIA cuando proceda.</p>
+            </article>
+            <article class="card">
+              <h3>Responsabilidades</h3>
+              <ul>
+                <li>Fabricante: hardware, firmware, ECUs, bus CAN y homologacion.</li>
+                <li>Proveedor SGF: APIs, cifrado, cloud, autenticacion y tenant isolation.</li>
+                <li>Operador: usuarios, credenciales, configuracion, base legal y proveedores.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Evidencias exigibles</h3>
+              <ul>
+                <li>Logs inmutables, reportes de pentest y SBOM.</li>
+                <li>Registros OTA, cifrado y gestion de claves.</li>
+                <li>Arquitectura, flujo de datos, modelo de amenazas y dependencias externas.</li>
+              </ul>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Evaluacion de proveedor</th><th>Pregunta clave</th><th>Por que importa</th></tr></thead>
+            <tbody>
+              <tr><td>Proteccion TCU</td><td>Secure boot, firmware firmado, HSM/TPM, hardening y deteccion fisica?</td><td>La TCU es primer eslabon de confianza.</td></tr>
+              <tr><td>Gestion de vulnerabilidades</td><td>VDP formal, SLA de correccion, CVEs, OTA segura y coordinacion CERT?</td><td>Sin proceso, las debilidades quedan vivas en produccion.</td></tr>
+              <tr><td>SOC 24/7 y SIEM</td><td>Monitorizacion, SOAR, inteligencia de amenazas y respuesta automatizada?</td><td>La flota necesita deteccion activa, no solo controles iniciales.</td></tr>
+              <tr><td>Pentest independiente</td><td>Se prueban APIs, web/movil, cloud e IoT/TCU?</td><td>Valida riesgos reales y no solo documentacion.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="ota">
+          <div class="eyebrow">OTA, monitorizacion y respuesta</div>
+          <h2 class="section-title">Actualizaciones seguras y gestion de incidentes</h2>
+          <div class="grid-3">
+            <article class="card">
+              <h3>Fundamentos OTA</h3>
+              <p>Permiten actualizar ECUs, TCU e infotainment sin intervencion fisica. Son necesarias para corregir fallos, pero crean una cadena critica de distribucion.</p>
+            </article>
+            <article class="card">
+              <h3>Seguridad OTA</h3>
+              <p>Firmware signing, hash de integridad, secure boot, chain of trust, HSM/TPM, delta updates y rollback seguro.</p>
+            </article>
+            <article class="card">
+              <h3>Riesgos OTA</h3>
+              <p>Firmware malicioso, downgrade attack, ataque MITM, corrupcion de paquetes, disponibilidad y persistencia post-compromiso.</p>
+            </article>
+          </div>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Monitorizacion</h3>
+              <p>IDS en vehiculo para CAN/LIN/FlexRay/Ethernet, monitorizacion backend, analisis de comportamiento y correlacion de eventos con SIEM.</p>
+            </article>
+            <article class="card">
+              <h3>Respuesta a incidentes</h3>
+              <p>Aislamiento remoto, bloqueo de comandos, safe mode, revocacion de certificados/tokens, forensia digital, hashing y sellado temporal.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="dia3">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Día 3 - evaluación práctica</div>
+              <h2 class="section-title">Incidente de telemetría en 25 vehículos</h2>
+              <p class="section-subtitle">
+                Durante 4 horas, una empresa de transportes detecta ubicaciones incorrectas con saltos de 20-30 km, niveles de combustible irreales y rutas que los conductores aseguran no haber realizado.
+              </p>
+            </div>
+            <div class="chip-row">
+              <span class="chip">Integridad</span>
+              <span class="chip">Telemetría</span>
+              <span class="chip">Forensia</span>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Lectura principal:</strong> no lo trataría como un fallo aislado de GPS. El caso mezcla posición, combustible y rutas, y además afecta a 25 vehículos en una ventana temporal concreta. Eso apunta a una alteración de integridad en una capa compartida del SGF: TCU/OBU, comunicaciones, broker, API/SaaS, credenciales o pipeline de datos.
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>Ubicación falsa</h3>
+              <p>Saltos de 20-30 km no parecen ruido normal. Encajan con spoofing GNSS, replay de coordenadas o alteración backend.</p>
+            </article>
+            <article class="card">
+              <h3>Combustible irreal</h3>
+              <p>El combustible no depende del GNSS. Obliga a mirar CAN/OBD, sensor, TCU, normalización cloud y reglas de cálculo.</p>
+            </article>
+            <article class="card">
+              <h3>Rutas no realizadas</h3>
+              <p>Si el conductor contradice al SGF, hay que contrastar con tacógrafo, peajes, cámaras, albaranes y telemetría cruda.</p>
+            </article>
+          </div>
+
+          <table class="risk-table">
+            <thead>
+              <tr><th>Prioridad</th><th>Hipótesis</th><th>Por qué encaja</th><th>Evidencias esperadas</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Alta</td><td>Compromiso SaaS/API o backend SGF</td><td>Explica afectación simultánea y mezcla de ubicación, rutas y combustible.</td><td>Accesos administrativos anómalos, tokens API fuera de patrón, escrituras masivas, errores en integraciones y alertas SIEM.</td></tr>
+              <tr><td>Alta</td><td>Replay o inyección de telemetría</td><td>Puede generar rutas falsas con datos aparentemente válidos si no se valida origen, firma, timestamp o frescura.</td><td>Mensajes duplicados, timestamps fuera de secuencia, nonces reutilizados y discrepancia entre TCU y backend.</td></tr>
+              <tr><td>Alta</td><td>Compromiso de TCU/OBU</td><td>La TCU toca GNSS y CAN/OBD antes de enviar datos. Si cae, el backend puede recibir telemetría falsa pero formalmente coherente.</td><td>Firmware alterado, certificados usados de forma extraña, reinicios, cambios de configuración y tráfico saliente anómalo.</td></tr>
+              <tr><td>Media</td><td>GPS/GNSS spoofing</td><td>Explica saltos de ubicación y rutas falsas, sobre todo si los vehículos estaban próximos geográficamente.</td><td>Baja calidad GNSS, discrepancia con IMU/odómetro/CAN, CN0/SNR anómalo, geocercas falsas.</td></tr>
+              <tr><td>Media</td><td>Manipulación CAN/OBD de combustible</td><td>Explica niveles irreales de combustible incompatibles con consumo, odómetro o repostajes.</td><td>Combustible que sube sin repostar, caídas instantáneas, valores fuera de rango, DTCs y tramas CAN anómalas.</td></tr>
+              <tr><td>Media-baja</td><td>Jamming o inhibición de señal</td><td>Puede provocar pérdida de posicionamiento, huecos y reconstrucciones erróneas, aunque no explica solo el combustible falso.</td><td>GNSS invalid, pérdida de satélites, caídas de modem, heartbeats perdidos y recuperación posterior en ráfaga.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-2">
+            <article class="card">
+              <h3>Criterios de descarte rápido</h3>
+              <ul>
+                <li>Si GNSS crudo está mal y CAN/IMU no acompaña: spoofing o interferencia RF.</li>
+                <li>Si CAN/OBD crudo está bien pero el dashboard falla: backend, API o pipeline.</li>
+                <li>Si los vehículos están dispersos y fallan a la vez: SaaS, broker, proveedor o credenciales.</li>
+                <li>Si aparecen mensajes repetidos o nonces reutilizados: replay o inyección.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Respuesta inicial</h3>
+              <ul>
+                <li>Congelar logs de API Gateway, broker MQTT/WebSocket, base de datos, TCU e IAM.</li>
+                <li>No reiniciar ni reconfigurar masivamente antes de preservar evidencias.</li>
+                <li>Rotar tokens sospechosos y revisar certificados TCU.</li>
+                <li>Construir una línea temporal con GNSS, CAN/OBD, comunicaciones, backend y operación real.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="avanzado">
+          <div class="eyebrow">Anexo 2</div>
+          <h2 class="section-title">Ataques de inhibición, DoS y laboratorio</h2>
+          <p class="section-subtitle">
+            La parte avanzada ordena ataques por capas para no caer en una lista genérica. La pregunta útil es qué capa manipula el dato, qué evidencia deja y si explica todos los síntomas del caso.
+          </p>
+
+          <table class="risk-table">
+            <thead><tr><th>Capa</th><th>Ataques a considerar</th><th>Relación con el caso</th></tr></thead>
+            <tbody>
+              <tr><td>RF / PNT</td><td>GNSS jamming, GNSS spoofing, differential GNSS manipulation, RF wideband jamming, time/PNT degradation.</td><td>Saltos de 20-30 km, pérdida de geocercas, rutas imposibles y timestamps incoherentes.</td></tr>
+              <tr><td>Conectividad</td><td>eSIM/cellular denial, rogue BTS, MITM de red, Telematics Unit DoS.</td><td>Vehículos conectan/desconectan, latencias raras, colas de telemetría y retransmisiones.</td></tr>
+              <tr><td>Vehículo / TCU</td><td>TCU compromise, ECU message injection, CAN flooding, UDS abuse, firmware downgrade.</td><td>Combustible imposible, señales CAN incoherentes, DTCs, reinicios o cambios de firmware.</td></tr>
+              <tr><td>Sensores / ADAS</td><td>Lidar blinding, radar spoofing, camera adversarial patch, EMI sensor injection, sensor replay.</td><td>Percepción degradada y discrepancias entre GNSS, IMU, CAN, cámara, lidar o radar.</td></tr>
+              <tr><td>Cloud / SaaS</td><td>Fleet API saturation, MQTT broker flooding, IAM abuse, BOLA/IDOR, pipeline poisoning.</td><td>Múltiples activos afectados, errores 5xx/429, tokens fuera de patrón y eventos duplicados.</td></tr>
+              <tr><td>SDV / Edge</td><td>Hypervisor escape, container escape, SOME/IP fuzzing, DoIP flooding, Automotive Ethernet flooding.</td><td>Cruce entre dominios, servicios reiniciados y tráfico Este-Oeste anómalo.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>DoS e inhibición</h3>
+              <p>GNSS jamming, RF wideband jamming, TCU DoS, CAN flooding, MQTT broker flooding y Fleet API saturation rompen continuidad, disponibilidad o trazabilidad.</p>
+            </article>
+            <article class="card">
+              <h3>Laboratorio avanzado</h3>
+              <p>Kalman filter poisoning, sensor replay, time synchronization attack, HD map poisoning, SOME/IP fuzzing, UDS abuse over IP y firmware downgrade.</p>
+            </article>
+            <article class="card">
+              <h3>EMP, EMI y HPM</h3>
+              <p>Son reales, pero conviene separar NEMP estratégico, HPM/HPEM, EMI intencionada y TEMPEST. En automoción importa más la degradación de sensores que la fantasía de apagado masivo.</p>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Criterio técnico:</strong> los ataques DoS no siempre inventan datos. Muchas veces rompen continuidad y obligan al sistema a reconstruir rutas, rellenar huecos o aceptar mensajes atrasados. Por eso hay que mirar señal, buffers, colas, reintentos y timestamps.
+          </div>
+
+          <table class="risk-table">
+            <thead><tr><th>Control defensivo</th><th>Aplicación</th><th>Valor en este caso</th></tr></thead>
+            <tbody>
+              <tr><td>Validación multisensor</td><td>Cruzar GNSS con IMU, odómetro, velocidad CAN, cell-ID, mapa y ruta prevista.</td><td>Reduce el riesgo de creer una sola fuente manipulada.</td></tr>
+              <tr><td>Plausibilidad física</td><td>Reglas de velocidad, aceleración, consumo, distancia y continuidad temporal.</td><td>Detecta saltos imposibles y combustible incompatible con conducción real.</td></tr>
+              <tr><td>Firmado y antirreplay</td><td>Firmas por dispositivo, nonces, timestamps, mTLS y certificados por TCU.</td><td>Evita suplantación y reenvío de telemetría antigua.</td></tr>
+              <tr><td>Monitorización RF/PNT</td><td>Alertas de jamming/spoofing, SNR/CN0, constelaciones visibles y calidad de fix.</td><td>Distingue fallo radio de fallo cloud o CAN.</td></tr>
+              <tr><td>Observabilidad forense</td><td>Logs WORM, SIEM, EDR cloud, retención de telemetría cruda y correlación horaria.</td><td>Permite reconstruir las 4 horas sin depender del panel SaaS.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="tecnicas">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Técnicas de ataque y defensa</div>
+              <h2 class="section-title">Ciberseguridad automotriz, SDV, V2X y vehículos autónomos</h2>
+              <p class="section-subtitle">
+                Este apartado separa técnicas reales, técnicas de laboratorio y controles defensivos. El objetivo no es enseñar a explotar sistemas, sino entender qué puede fallar, qué impacto tendría y qué evidencias o defensas reducen el riesgo.
+              </p>
+            </div>
+            <div class="chip-row">
+              <span class="chip">RF/GNSS</span>
+              <span class="chip">CAN/ECU</span>
+              <span class="chip">OTA</span>
+              <span class="chip">IA</span>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="tech-rf">RF/GNSS</button>
+            <button class="tab-btn" data-tab="tech-vehiculo">CAN/ECU/OTA</button>
+            <button class="tab-btn" data-tab="tech-cloud">Cloud/SDV/V2X</button>
+            <button class="tab-btn" data-tab="tech-ia">IA/Sensores/EMI</button>
+            <button class="tab-btn" data-tab="tech-defensa">Defensa estratégica</button>
+          </div>
+
+          <div class="tab-panel active" id="tech-rf">
+            <table class="risk-table">
+              <thead><tr><th>Técnica</th><th>Tipo</th><th>Consiste en</th><th>Impacto</th><th>Defensa</th></tr></thead>
+              <tbody>
+                <tr><td>GNSS Jamming</td><td>Real</td><td>Inhibir GPS/Galileo/GLONASS mediante interferencia RF.</td><td>Pérdida de navegación, geofencing y sincronización.</td><td>Multi-GNSS, RAIM/FDE, navegación inercial, antenas anti-jamming y sensor fusion.</td></tr>
+                <tr><td>GNSS Spoofing</td><td>Avanzado real</td><td>Generar señales satelitales falsas para alterar posición.</td><td>Rutas falsas, bypass de geocercas y navegación manipulada.</td><td>Galileo OSNMA, trusted PNT, validación Doppler, ML anomaly detection e IMU correlation.</td></tr>
+                <tr><td>Meaconing</td><td>EW/militar</td><td>Capturar y retransmitir señal GNSS legítima con retraso.</td><td>Errores temporales y espaciales difíciles de detectar.</td><td>Timestamp validation, anti-replay y arquitecturas APNT.</td></tr>
+                <tr><td>RF Wideband Jamming</td><td>Real/laboratorio</td><td>Interferencia multibanda sobre GNSS, LTE/5G, Wi-Fi, BLE, TPMS o keyless.</td><td>Vehículo aislado, pérdida de telemetría y degradación operativa.</td><td>Monitorización RF, redundancia de enlaces, alertas por zona y modo degradado seguro.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tech-vehiculo">
+            <table class="risk-table">
+              <thead><tr><th>Técnica</th><th>Tipo</th><th>Consiste en</th><th>Impacto</th><th>Defensa</th></tr></thead>
+              <tbody>
+                <tr><td>CAN Flooding</td><td>Real/laboratorio</td><td>Saturar el bus CAN con mensajes masivos.</td><td>DoS de ECUs, degradación de sistemas críticos y pérdida de comunicación.</td><td>CAN IDS, rate limiting, segmentación, gateways seguros y detección de anomalías.</td></tr>
+                <tr><td>CAN Injection</td><td>Real</td><td>Inyectar tramas CAN falsas.</td><td>Indicadores falsos, manipulación de señales y funciones no autorizadas.</td><td>Autenticación CAN, MAC, secure gateways, freshness counters e IDS vehicular.</td></tr>
+                <tr><td>Replay Attack CAN</td><td>Real/laboratorio</td><td>Repetir mensajes válidos capturados.</td><td>Apertura, arranque o acciones repetidas sin autorización.</td><td>Rolling counters, timestamps, nonces y freshness validation.</td></tr>
+                <tr><td>Firmware Downgrade</td><td>Muy relevante</td><td>Instalar firmware vulnerable antiguo por OBD-II, UDS u OTA.</td><td>Bypass de mitigaciones, reintroducción de CVEs y persistencia.</td><td>Anti-rollback, secure boot, firmware signing y validación TPM/HSM.</td></tr>
+                <tr><td>ECU Reflashing Abuse</td><td>Real/laboratorio</td><td>Modificar firmware de ECU abusando de procesos de diagnóstico o flashing.</td><td>Control de ECU, sabotaje funcional y malware persistente.</td><td>Secure flashing, UDS autenticado, control de sesiones y hardware root of trust.</td></tr>
+                <tr><td>Secure Boot Bypass</td><td>Laboratorio avanzado</td><td>Evitar la validación de arranque seguro.</td><td>Ejecución de firmware malicioso.</td><td>Measured boot, TPM, secure enclaves y chain-of-trust validation.</td></tr>
+                <tr><td>OTA Supply Chain Attack</td><td>Crítico</td><td>Comprometer infraestructura de actualización OTA.</td><td>Compromiso masivo de flota y distribución de firmware malicioso.</td><td>PKI, firma, SBOM, attestation, zero trust OTA, canary rollout y doble aprobación.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tech-cloud">
+            <table class="risk-table">
+              <thead><tr><th>Técnica</th><th>Tipo</th><th>Consiste en</th><th>Impacto</th><th>Defensa</th></tr></thead>
+              <tbody>
+                <tr><td>Fleet Management API Abuse</td><td>Real</td><td>Abusar de APIs telemáticas o de flota.</td><td>Tracking masivo, exfiltración, comandos indebidos o alteración de datos.</td><td>API Gateway, OAuth hardening, mTLS, rate limiting, scopes mínimos y Zero Trust.</td></tr>
+                <tr><td>Kubernetes Control Plane Attack</td><td>Relevante SDV/cloud</td><td>Comprometer el plano de control cloud automotive.</td><td>Caída de servicios, movimiento lateral y compromiso multi-tenant.</td><td>RBAC, network policies, admission controllers, runtime protection y separación de tenants.</td></tr>
+                <tr><td>Container Escape</td><td>SDV/edge</td><td>Escapar de contenedor en edge automotive.</td><td>Compromiso del host y acceso lateral a servicios o ECUs virtualizadas.</td><td>gVisor, Kata Containers, SELinux/AppArmor, sandboxing y mínimos privilegios.</td></tr>
+                <tr><td>V2X Message Injection</td><td>Real/laboratorio</td><td>Enviar mensajes V2X falsos.</td><td>Alertas falsas, congestión artificial o decisiones cooperativas incorrectas.</td><td>PKI vehicular, certificados V2X, trust scoring y correlación con sensores locales.</td></tr>
+                <tr><td>Sybil Attack</td><td>V2X</td><td>Crear múltiples identidades falsas.</td><td>Manipulación de tráfico y engaño de sistemas cooperativos.</td><td>Validación de identidad, rotación controlada de certificados y anomaly correlation.</td></tr>
+                <tr><td>SOME/IP Service Spoofing</td><td>AUTOSAR</td><td>Falsificar servicios o descubrimiento en redes Automotive Ethernet.</td><td>Funciones no autorizadas o degradación de servicios.</td><td>Autenticación, secure discovery, service integrity y segmentación.</td></tr>
+                <tr><td>DoIP Flooding</td><td>Real/laboratorio</td><td>Saturar diagnóstico sobre IP.</td><td>DoS diagnóstico y degradación de ECU.</td><td>Filtrado, segmentación, secure gateways y control de sesiones.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tech-ia">
+            <table class="risk-table">
+              <thead><tr><th>Técnica</th><th>Tipo</th><th>Consiste en</th><th>Impacto</th><th>Defensa</th></tr></thead>
+              <tbody>
+                <tr><td>Adversarial ML Attack</td><td>Investigación avanzada</td><td>Diseñar entradas para engañar modelos IA.</td><td>Evasión de detección y decisiones erróneas.</td><td>Adversarial training, sensor redundancy, validación contextual y explainable AI.</td></tr>
+                <tr><td>Camera Adversarial Patch</td><td>Laboratorio/real experimental</td><td>Usar patrones visuales que confunden visión artificial.</td><td>Señales mal clasificadas u objetos no detectados.</td><td>Multi-sensor fusion, validación temporal y controles de contexto.</td></tr>
+                <tr><td>Lidar Spoofing</td><td>Laboratorio avanzado</td><td>Generar puntos u objetos falsos en lidar.</td><td>Frenadas fantasma u obstáculos ficticios.</td><td>Correlación sensor, filtrado temporal y ML anomaly detection.</td></tr>
+                <tr><td>Radar Spoofing</td><td>Laboratorio avanzado</td><td>Crear ecos radar falsos.</td><td>Ghost vehicles, manipulación de ACC/ADAS y decisiones incorrectas.</td><td>FMCW validation, sensor fusion y análisis de integridad de señal.</td></tr>
+                <tr><td>EMI Injection</td><td>Real/laboratorio</td><td>Inducir interferencia electromagnética en sensores o buses.</td><td>Corrupción de sensores, reinicios ECU o pérdida de comunicaciones.</td><td>Shielding, filtros EMI, EMC validation, detección de fallos y redundancia.</td></tr>
+                <tr><td>HPM Attack</td><td>Militar/laboratorio</td><td>Microondas de alta potencia dirigidas.</td><td>Degradación electrónica o fallo de sistemas críticos.</td><td>Hardening electromagnético, Faraday shielding y diseño EMC robusto.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" id="tech-defensa">
+            <div class="grid-3">
+              <article class="card">
+                <h3>Zero Trust Automotive</h3>
+                <p>Aplicar verificación explícita, mínimo privilegio y validación continua a ECUs, TCU, cloud, APIs, OTA, usuarios y proveedores.</p>
+              </article>
+              <article class="card">
+                <h3>Defense in Depth</h3>
+                <p>Capas coordinadas: hardware, firmware, hypervisor, contenedores, red interna, comunicaciones, cloud, SaaS, SOC y operación.</p>
+              </article>
+              <article class="card">
+                <h3>Sensor Fusion Integrity</h3>
+                <p>Correlación GNSS, lidar, radar, cámaras, IMU y odometría para detectar inconsistencias y aumentar resiliencia.</p>
+              </article>
+              <article class="card">
+                <h3>Automotive IDS/IPS</h3>
+                <p>Detección de anomalías CAN, ECU, V2X, telemetría y comportamiento mediante reglas, ML, DPI y análisis temporal.</p>
+              </article>
+              <article class="card">
+                <h3>Secure OTA Governance</h3>
+                <p>Firmware signing, SBOM, supply chain validation, rollback prevention, attestation, despliegue gradual y aprobación por quorum.</p>
+              </article>
+              <article class="card">
+                <h3>Threat Intelligence Automotive</h3>
+                <p>Correlación de CVEs, IoCs, telemetría, ataques RF, ataques cloud, campañas sobre V2X y señales de fraude operacional.</p>
+              </article>
+            </div>
+
+            <div class="callout">
+              <strong>Áreas emergentes:</strong> Software Defined Vehicle, arquitecturas zonales seguras, AI-driven automotive IDS, trusted navigation/APNT, edge automotive, Kubernetes automotive, V2X seguro, hypervisors automotrices, seguridad de percepción IA, OTA supply chain, criptografía postcuántica, digital twins y SOC automotriz.
+            </div>
+          </div>
+
+        </section>
+
+        <section class="panel" id="software">
+          <div class="eyebrow">Plataformas SGF</div>
+          <h2 class="section-title">Plataformas de pago y recursos libres</h2>
+          <p class="section-subtitle">
+            Primero aparecen soluciones comerciales habituales en gestión de flotas; después, herramientas libres o self-hosted útiles para laboratorio, aprendizaje y control propio de datos.
+          </p>
+
+          <table class="risk-table">
+            <thead><tr><th>Plataforma de pago</th><th>Tipo</th><th>Uso principal</th></tr></thead>
+            <tbody>
+              <tr><td>Geotab</td><td>Telemática SaaS con marketplace y APIs</td><td>Gestión avanzada de flotas, diagnóstico, reporting, integraciones y ecosistema de terceros.</td></tr>
+              <tr><td>Samsara</td><td>Plataforma IoT cloud para operaciones conectadas</td><td>Telemetría, dashcams inteligentes, seguridad del conductor, mantenimiento y analítica operativa.</td></tr>
+              <tr><td>Verizon Connect</td><td>SGF empresarial SaaS</td><td>Seguimiento, optimización de rutas, productividad, cumplimiento y gestión de activos.</td></tr>
+              <tr><td>Webfleet</td><td>Gestión de flotas SaaS</td><td>Tracking, rutas, conducción eficiente, sostenibilidad, informes y mantenimiento.</td></tr>
+              <tr><td>Wialon</td><td>Plataforma telemática modular/PaaS</td><td>Integración con múltiples dispositivos, monitorización, sensores, geocercas y soluciones a medida.</td></tr>
+              <tr><td>MiX by Powerfleet</td><td>Telemática corporativa y seguridad de flota</td><td>Conducción segura, cumplimiento, analítica, vídeo, mantenimiento y operaciones internacionales.</td></tr>
+              <tr><td>Michelin Connected Fleet</td><td>SGF corporativo europeo</td><td>Optimización de flota, seguridad, ahorro de combustible, mantenimiento y asesoría operativa.</td></tr>
+              <tr><td>Fleet Complete</td><td>Plataforma SaaS de flotas y activos</td><td>Tracking, dispatch, cámaras, cumplimiento, activos conectados y productividad de campo.</td></tr>
+            </tbody>
+          </table>
+
+          <table class="risk-table">
+            <thead><tr><th>Software libre / recurso</th><th>Tipo</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td>Traccar</td><td>GPS tracking open source</td><td>Seguimiento, dispositivos, alertas, geofencing y reporting.</td></tr>
+              <tr><td>OpenGTS</td><td>Sistema web de tracking GPS</td><td>Ejemplo clasico de trazabilidad de vehiculos y activos.</td></tr>
+              <tr><td>Fleetbase</td><td>Plataforma logistica/fleet AGPL</td><td>Dispatch, rutas, datos propios y operacion self-hosted.</td></tr>
+              <tr><td>Open VTS</td><td>Tracking GPS self-hosted</td><td>Control propio de datos de flota.</td></tr>
+              <tr><td>FleetPy</td><td>Simulacion de movilidad</td><td>Experimentar con rutas, demanda y modelos operativos.</td></tr>
+            </tbody>
+          </table>
+
+          <p class="section-subtitle">
+            Para recursos visuales: FKA Steer-by-Wire Whitepaper, NHTSA DOT HS 812 576, Cloudflare mTLS y documentacion de Traccar/Fleetbase para ejemplos de plataforma.
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
